@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shorterner</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shorterner</h1>
+        <form id="shorterner-form">
+            <div>
+                <label for="url">Enter URL:</label>
+                <input type="text" name="url" id="url" placeholder="Enter URL to shorten" required>
+            </div>
+            <div>
+                <label for="shortercode">Enter Shorterner Code</label>
+                <input type="text" name="shortercode" id="shortercode" placeholder="Enter shorterner code" required>
+
+            </div>
+            <button type="submit">Shorten</button>
+        </form>
+        <h2>Shorterner URLs</h2>
+        <ul id="shorterner-url"></ul>
+    </div>
+    <script>
+       const fetchshortendURL = async () => {
+        try{
+                const response = await fetch('/links');
+                const data = await response.json();
+                console.log(data);
+                const ul = document.getElementById('shorterner-url');
+                ul.innerHTML = '';
+                for(const [shortcode,url] of Object.entries(data)){
+                    const li = document.createElement('li');
+                    li.textContent = `Shortened URL: ${url} (Original: ${shortcode})`;
+                    ul.appendChild(li);
+                }
+            }catch(error){
+                console.error('Error:',error);
+            }
+        };
+
+
+        
+        // Call the function when page loads
+        fetchshortendURL();
+        document.getElementById('shorterner-form').addEventListener('submit', async (event)=> {
+            event.preventDefault();
+            const formData= new FormData(event.target);
+            const url = formData.get('url');
+            const shortercode = formData.get('shortercode');
+            console.log(url,shortercode);
+
+            try{
+                const response =await fetch('/shorten',{
+                    method:'POST',
+                    headers:{
+                        'Content-Type':'application/json'
+                    },
+                    body:JSON.stringify({url,shortercode})
+                });
+                // const data = await response.json();
+                if(response.ok){
+                    fetchshortendURL();
+                    alert('URL shortened successfully');
+                    event.target.reset();
+                }
+                else{
+                    const errormessage = await response.text();
+                    alert(errormessage);
+                }
+
+            }catch(error){
+                console.error('Error:',error);
+            }
+        });
+        fetchshortendURL();
+        // async function fetchshortendURLs(){
+        //     try{
+        //         const response = await fetch('/links');
+        //         const data = await response.json();
+        //         console.log(data);
+        //         const ul = document.getElementById('shorterner-url');
+        //         ul.innerHTML = '';
+        //         for(const [shortcode,url] of Object.entries(data)){
+        //             const li = document.createElement('li');
+        //             li.textContent = `Shortened URL: ${url} (Original: ${shortcode})`;
+        //             ul.appendChild(li);
+        //         }
+        //     }catch(error){
+        //         console.error('Error:',error);
+        //     }
+        // }
+    </script>
+</body>
+</html>
